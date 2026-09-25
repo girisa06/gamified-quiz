@@ -1,6 +1,6 @@
 {
   "base_url": "http://localhost:8000",
-  "note": "Locked at Checkpoint 1. Routes marked \"implemented\": true are live and stubbed in main.py returning dummy data. Routes marked false are contract-only, reserved for later phases so Member 3 can build against the shape now.",
+  "note": "Updated at Checkpoint 2. Routes marked \"implemented\": true are live in main.py with real database logic. Routes marked false are contract-only, reserved for Phase 3 (challenges) so Member 3 can build against the shape now.",
   "routes": [
     {
       "method": "GET",
@@ -37,25 +37,26 @@
       "request": null,
       "response": {
         "quizzes": [
-          { "id": 1, "title": "Science Basics", "question_count": 15 },
-          { "id": 2, "title": "Math Sprint", "question_count": 10 }
+          { "id": 1, "title": "Science Basics", "subject": "Science", "question_count": 15 },
+          { "id": 2, "title": "Rookie Challenge", "subject": "General Knowledge", "question_count": 5 }
         ]
       }
     },
     {
       "method": "GET",
       "path": "/api/quizzes/{quiz_id}",
-      "implemented": false,
-      "description": "Fetch full quiz with questions. Answer index is withheld here; game logic checks answers server-side.",
+      "implemented": true,
+      "description": "Fetch full quiz with questions. Answer index is withheld here; game logic checks answers server-side. 404 if quiz_id doesn't exist.",
       "request": null,
       "response": {
-        "quiz": { "id": 1, "title": "Science Basics", "subject": "Science" },
+        "quiz": { "id": 1, "title": "Science Basics", "subject": "Science", "classroom_id": 1 },
         "questions": [
           {
             "id": 1,
-            "q_text": "What planet is closest to the sun?",
+            "q": "What planet is closest to the sun?",
             "options": ["Venus", "Mercury", "Earth", "Mars"],
-            "difficulty": "easy"
+            "difficulty": "easy",
+            "explanation": "Mercury is the closest planet to the sun."
           }
         ]
       }
@@ -63,8 +64,8 @@
     {
       "method": "POST",
       "path": "/api/quizzes/create",
-      "implemented": false,
-      "description": "Create a quiz and its questions (used by seed script and quiz creators).",
+      "implemented": true,
+      "description": "Create a quiz and its questions (used by seed_demo.py and quiz creators). classroom_id is required since quiz.classroom_id is NOT NULL in the schema. Validates: min 5 questions, difficulty in easy/medium/hard, 0 <= answer <= 3 and answer < len(options). Returns 400 on validation failure, 404 if classroom_id doesn't exist.",
       "request": {
         "classroom_id": 1,
         "title": "Science Basics",
@@ -72,11 +73,11 @@
         "created_by_student_id": 42,
         "questions": [
           {
-            "q_text": "What planet is closest to the sun?",
+            "q": "What planet is closest to the sun?",
             "options": ["Venus", "Mercury", "Earth", "Mars"],
-            "answer_index": 1,
+            "answer": 1,
             "difficulty": "easy",
-            "explanation": "Mercury orbits closest to the sun."
+            "explanation": "Mercury is the closest planet to the sun."
           }
         ]
       },
@@ -91,12 +92,12 @@
       "response": {
         "leaderboard": [
           {
-            "student_id": 42,
+            "id": 42,
             "name": "Arjun",
             "avatar": "🐉",
             "level": 3,
             "current_streak": 2,
-            "total_xp": 120
+            "xp": 120
           }
         ]
       }

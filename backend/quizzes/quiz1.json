@@ -1,0 +1,111 @@
+{
+  "title": "Science Basics",
+  "subject": "Science",
+  "questions": [
+    {
+      "q": "What planet is closest to the sun?",
+      "options": ["Venus", "Mercury", "Earth", "Mars"],
+      "answer": 1,
+      "difficulty": "easy",
+      "explanation": "Mercury is the closest planet to the sun."
+    },
+    {
+      "q": "What gas do plants absorb from the air?",
+      "options": ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"],
+      "answer": 2,
+      "difficulty": "easy",
+      "explanation": "Plants absorb carbon dioxide for photosynthesis."
+    },
+    {
+      "q": "How many bones are in the human body?",
+      "options": ["206", "150", "300", "180"],
+      "answer": 0,
+      "difficulty": "easy",
+      "explanation": "An adult human skeleton has 206 bones."
+    },
+    {
+      "q": "What is the boiling point of water at sea level?",
+      "options": ["90°C", "100°C", "110°C", "120°C"],
+      "answer": 1,
+      "difficulty": "easy",
+      "explanation": "Water boils at 100°C (212°F) at sea level."
+    },
+    {
+      "q": "Which organ pumps blood through the body?",
+      "options": ["Lungs", "Liver", "Heart", "Kidney"],
+      "answer": 2,
+      "difficulty": "easy",
+      "explanation": "The heart pumps blood through the circulatory system."
+    },
+    {
+      "q": "What is the chemical symbol for gold?",
+      "options": ["Go", "Gd", "Au", "Ag"],
+      "answer": 2,
+      "difficulty": "medium",
+      "explanation": "Au comes from the Latin word 'aurum'."
+    },
+    {
+      "q": "What force keeps planets in orbit around the sun?",
+      "options": ["Magnetism", "Gravity", "Friction", "Inertia"],
+      "answer": 1,
+      "difficulty": "medium",
+      "explanation": "Gravity pulls planets toward the sun, keeping them in orbit."
+    },
+    {
+      "q": "What part of the cell contains genetic material?",
+      "options": ["Mitochondria", "Nucleus", "Ribosome", "Cytoplasm"],
+      "answer": 1,
+      "difficulty": "medium",
+      "explanation": "The nucleus houses the cell's DNA."
+    },
+    {
+      "q": "Which layer of Earth is mostly liquid metal?",
+      "options": ["Crust", "Mantle", "Outer core", "Inner core"],
+      "answer": 2,
+      "difficulty": "medium",
+      "explanation": "The outer core is liquid iron and nickel."
+    },
+    {
+      "q": "What type of energy is stored in food?",
+      "options": ["Kinetic", "Chemical", "Thermal", "Nuclear"],
+      "answer": 1,
+      "difficulty": "medium",
+      "explanation": "Food stores chemical energy that cells convert to usable energy."
+    },
+    {
+      "q": "What is the powerhouse of the cell?",
+      "options": ["Nucleus", "Ribosome", "Mitochondria", "Golgi body"],
+      "answer": 2,
+      "difficulty": "hard",
+      "explanation": "Mitochondria produce most of the cell's ATP energy."
+    },
+    {
+      "q": "Which law states that force equals mass times acceleration?",
+      "options": ["Newton's First Law", "Newton's Second Law", "Newton's Third Law", "Law of Gravitation"],
+      "answer": 1,
+      "difficulty": "hard",
+      "explanation": "F = ma is Newton's Second Law of Motion."
+    },
+    {
+      "q": "What particle has a negative electric charge?",
+      "options": ["Proton", "Neutron", "Electron", "Positron"],
+      "answer": 2,
+      "difficulty": "hard",
+      "explanation": "Electrons carry a negative charge and orbit the nucleus."
+    },
+    {
+      "q": "What process do plants use to convert light into energy?",
+      "options": ["Respiration", "Photosynthesis", "Fermentation", "Transpiration"],
+      "answer": 1,
+      "difficulty": "hard",
+      "explanation": "Photosynthesis converts light energy into chemical energy."
+    },
+    {
+      "q": "What is the SI unit of electric current?",
+      "options": ["Volt", "Watt", "Ohm", "Ampere"],
+      "answer": 3,
+      "difficulty": "hard",
+      "explanation": "The ampere (A) measures electric current."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "title": "Champion Challenge",
+  "subject": "General Knowledge",
+  "questions": [
+    {
+      "q": "Which continent is the Sahara Desert located on?",
+      "options": ["Asia", "Africa", "Australia", "South America"],
+      "answer": 1,
+      "difficulty": "medium",
+      "explanation": "The Sahara Desert is in northern Africa."
+    },
+    {
+      "q": "Who wrote 'Romeo and Juliet'?",
+      "options": ["Charles Dickens", "Mark Twain", "William Shakespeare", "Jane Austen"],
+      "answer": 2,
+      "difficulty": "medium",
+      "explanation": "William Shakespeare wrote 'Romeo and Juliet'."
+    },
+    {
+      "q": "What is the currency of Japan?",
+      "options": ["Won", "Yuan", "Yen", "Ringgit"],
+      "answer": 2,
+      "difficulty": "medium",
+      "explanation": "Japan's currency is the yen."
+    },
+    {
+      "q": "Which planet is known as the Red Planet?",
+      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+      "answer": 1,
+      "difficulty": "medium",
+      "explanation": "Mars appears red due to iron oxide on its surface."
+    },
+    {
+      "q": "What is the largest ocean on Earth?",
+      "options": ["Atlantic", "Indian", "Arctic", "Pacific"],
+      "answer": 3,
+      "difficulty": "medium",
+      "explanation": "The Pacific Ocean is the largest ocean on Earth."
+    }
+  ]
+}

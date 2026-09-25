@@ -1,0 +1,41 @@
+{
+  "title": "Legend Challenge",
+  "subject": "General Knowledge",
+  "questions": [
+    {
+      "q": "What is the smallest prime number?",
+      "options": ["0", "1", "2", "3"],
+      "answer": 2,
+      "difficulty": "hard",
+      "explanation": "2 is the smallest and only even prime number."
+    },
+    {
+      "q": "In what year did the Berlin Wall fall?",
+      "options": ["1987", "1989", "1991", "1993"],
+      "answer": 1,
+      "difficulty": "hard",
+      "explanation": "The Berlin Wall fell in 1989."
+    },
+    {
+      "q": "What is the hardest natural substance on Earth?",
+      "options": ["Quartz", "Diamond", "Titanium", "Graphite"],
+      "answer": 1,
+      "difficulty": "hard",
+      "explanation": "Diamond is the hardest known natural material."
+    },
+    {
+      "q": "Which element has the atomic number 1?",
+      "options": ["Helium", "Oxygen", "Hydrogen", "Lithium"],
+      "answer": 2,
+      "difficulty": "hard",
+      "explanation": "Hydrogen has one proton, giving it atomic number 1."
+    },
+    {
+      "q": "Who developed the theory of general relativity?",
+      "options": ["Isaac Newton", "Niels Bohr", "Albert Einstein", "Galileo Galilei"],
+      "answer": 2,
+      "difficulty": "hard",
+      "explanation": "Albert Einstein published the theory of general relativity in 1915."
+    }
+  ]
+}
