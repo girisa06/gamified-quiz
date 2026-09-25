@@ -29,7 +29,7 @@ AVATAR_CHOICES = ["🐉", "🤖", "🧙", "🦁", "🚀", "⚡"]
 WIN_XP = 10
 XP_PER_LEVEL = 50
 MAX_LEVEL = 10
-LLM_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
+LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 MAX_PDF_CHARS = 30000
 
 
@@ -579,11 +579,19 @@ def extract_pdf_text(data: bytes) -> str:
 
 
 def generate_questions_with_llm(text: str) -> list:
-    """Ask Claude for quiz questions and return the parsed JSON list."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    """Ask Gemini for quiz questions and return the parsed JSON list."""
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY is not set")
-    import anthropic
+        raise RuntimeError("GEMINI_API_KEY not loaded from .env")
+    # Only length + 3-char prefix are ever reported, never the key body.
+    if api_key.startswith("sk-"):
+        raise RuntimeError(
+            f"GEMINI_API_KEY looks like an OpenAI/Anthropic key ({len(api_key)} chars starting with "
+            f"{api_key[:3]!r}). Get a Gemini key from ai.google.dev."
+        )
+    if not api_key.startswith("AIza"):
+        logger.warning("GEMINI_API_KEY does not start with 'AIza' (len=%d); trying it anyway", len(api_key))
+    import google.generativeai as genai
 
     prompt = (
         "Extract 8-10 quiz questions from this text. Return ONLY valid JSON array, "
@@ -591,13 +599,11 @@ def generate_questions_with_llm(text: str) -> list:
         "\"answer\": int (0-3), \"difficulty\": \"easy\"|\"medium\"|\"hard\", "
         "\"explanation\": \"...\", \"topic\": \"topic_name\"}\n\nTEXT:\n" + text
     )
-    client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
-        model=LLM_MODEL,
-        max_tokens=4096,
-        messages=[{"role": "user", "content": prompt}],
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel(
+        LLM_MODEL, generation_config={"response_mime_type": "application/json"}
     )
-    raw = "".join(b.text for b in response.content if getattr(b, "type", "") == "text").strip()
+    raw = model.generate_content(prompt).text.strip()
     if raw.startswith("```"):  # strip markdown fences if the model added them
         raw = raw.strip("`").strip()
         if raw.lower().startswith("json"):
@@ -614,7 +620,7 @@ def generate_quiz_from_pdf(
     chapter: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    """Generate a quiz from an uploaded PDF chapter using Claude."""
+    """Generate a quiz from an uploaded PDF chapter using Gemini."""
     get_or_404(db, Classroom, classroom_id, "Classroom")
     text = extract_pdf_text(file.file.read())
     title = chapter or Path(file.filename or "Quiz").stem
