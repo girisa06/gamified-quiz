@@ -131,7 +131,7 @@
       "method": "GET",
       "path": "/api/leaderboard/{classroom_id}",
       "implemented": true,
-      "description": "Top students in a classroom, sorted by level DESC then xp DESC.",
+      "description": "Top 10 students in a classroom, sorted by level DESC then xp DESC. rating is the student's Elo.",
       "request": null,
       "response": {
         "leaderboard": [
@@ -141,7 +141,8 @@
             "avatar": "🐉",
             "level": 3,
             "current_streak": 2,
-            "xp": 120
+            "xp": 120,
+            "rating": 1216
           }
         ]
       }

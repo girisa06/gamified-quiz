@@ -10,6 +10,7 @@ from typing import List, Optional
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
 from sqlalchemy import or_
@@ -23,6 +24,15 @@ from models import Challenge, Classroom, Mastery, Question, Quiz, StudentProfile
 logger = logging.getLogger("quizduel")
 
 app = FastAPI(title="Quiz Duel API")
+
+# Let the browser frontend (any origin) call the API. Registered before any route.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # dev/hackathon mode
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 VALID_DIFFICULTIES = {"easy", "medium", "hard"}
 AVATAR_CHOICES = ["🐉", "🤖", "🧙", "🦁", "🚀", "⚡"]
@@ -115,6 +125,7 @@ class LeaderboardEntry(BaseModel):
     level: int
     current_streak: int
     xp: int
+    rating: int  # Elo
 
 
 class LeaderboardResponse(BaseModel):
@@ -295,6 +306,7 @@ def get_leaderboard(classroom_id: int, db: Session = Depends(get_db)):
                     "level": student.level,
                     "current_streak": student.current_streak,
                     "xp": student.xp,
+                    "rating": student.rating,
                 }
                 for student in students
             ]
@@ -489,7 +501,16 @@ def submit_challenge(challenge_id: int, payload: ChallengeSubmitRequest, db: Ses
     if not 0 <= payload.score <= 100:
         raise HTTPException(status_code=400, detail="Score must be between 0 and 100")
     try:
-        challenge = get_or_404(db, Challenge, challenge_id, "Challenge")
+        # Lock the challenge row so two simultaneous submits are serialized: the second waits for
+        # the first to commit, then sees its score and completes the challenge.
+        challenge = (
+            db.query(Challenge)
+            .filter(Challenge.id == challenge_id)
+            .with_for_update()
+            .first()
+        )
+        if challenge is None:
+            raise HTTPException(status_code=404, detail="Challenge not found")
         if challenge.status == "done":
             raise HTTPException(status_code=400, detail="Challenge already completed")
 
@@ -504,8 +525,20 @@ def submit_challenge(challenge_id: int, payload: ChallengeSubmitRequest, db: Ses
         else:
             raise HTTPException(status_code=400, detail="Student is not part of this challenge")
 
-        student_a = get_or_404(db, StudentProfile, challenge.student_a_id, "Student A")
-        student_b = get_or_404(db, StudentProfile, challenge.student_b_id, "Student B")
+        # Lock BOTH students in id order (a consistent order prevents circular deadlocks) so
+        # concurrent challenges involving the same student can't lose an XP/Elo update.
+        locked_students = (
+            db.query(StudentProfile)
+            .filter(StudentProfile.id.in_([challenge.student_a_id, challenge.student_b_id]))
+            .order_by(StudentProfile.id)
+            .with_for_update()
+            .all()
+        )
+        students_by_id = {s.id: s for s in locked_students}
+        student_a = students_by_id.get(challenge.student_a_id)
+        student_b = students_by_id.get(challenge.student_b_id)
+        if not student_a or not student_b:
+            raise HTTPException(status_code=400, detail="One or both students not found")
 
         # First submission: store it and wait for the opponent.
         if challenge.score_a is None or challenge.score_b is None:
