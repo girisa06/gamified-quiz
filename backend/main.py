@@ -127,7 +127,8 @@ class QuizCreateResponse(BaseModel):
 
 # ---------- Helpers ----------
 
-def generate_classroom_code(db: Session) -> str:
+def generate_code(db: Session) -> str:
+    """Generate a unique 4-char classroom code (A-Z, 0-9), retrying on collision."""
     charset = string.ascii_uppercase + string.digits
     for _ in range(20):
         code = "".join(random.choices(charset, k=4))
@@ -137,6 +138,7 @@ def generate_classroom_code(db: Session) -> str:
 
 
 def validate_quiz_payload(payload: QuizCreateRequest) -> None:
+    """Enforce min 5 questions, valid difficulty tier, and an in-range answer index."""
     if len(payload.questions) < 5:
         raise HTTPException(status_code=400, detail="Quiz must have at least 5 questions")
     for i, q in enumerate(payload.questions):
@@ -157,8 +159,9 @@ def validate_quiz_payload(payload: QuizCreateRequest) -> None:
 
 @app.post("/api/classrooms/create", response_model=ClassroomCreateResponse)
 def create_classroom(payload: ClassroomCreateRequest, db: Session = Depends(get_db)):
+    """Create a classroom with a unique 4-char join code."""
     try:
-        code = generate_classroom_code(db)
+        code = generate_code(db)
         classroom = Classroom(code=code)
         db.add(classroom)
         db.commit()
@@ -173,6 +176,7 @@ def create_classroom(payload: ClassroomCreateRequest, db: Session = Depends(get_
 
 @app.post("/api/classrooms/join", response_model=ClassroomJoinResponse)
 def join_classroom(payload: ClassroomJoinRequest, db: Session = Depends(get_db)):
+    """Join a classroom by code and create a fresh StudentProfile."""
     try:
         classroom = db.query(Classroom).filter(Classroom.code == payload.code).first()
         if not classroom:
@@ -205,6 +209,7 @@ def join_classroom(payload: ClassroomJoinRequest, db: Session = Depends(get_db))
 
 @app.get("/api/classrooms/{classroom_id}/quizzes", response_model=ClassroomQuizzesResponse)
 def get_classroom_quizzes(classroom_id: int, db: Session = Depends(get_db)):
+    """List quizzes belonging to a classroom, with live question counts."""
     try:
         quizzes = db.query(Quiz).filter(Quiz.classroom_id == classroom_id).all()
         return {
@@ -224,6 +229,7 @@ def get_classroom_quizzes(classroom_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/quizzes/{quiz_id}", response_model=QuizDetailResponse)
 def get_quiz(quiz_id: int, db: Session = Depends(get_db)):
+    """Fetch a quiz with its questions. Answer indices are withheld here."""
     try:
         quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
         if not quiz:
@@ -255,6 +261,7 @@ def get_quiz(quiz_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/leaderboard/{classroom_id}", response_model=LeaderboardResponse)
 def get_leaderboard(classroom_id: int, db: Session = Depends(get_db)):
+    """Top 10 students in a classroom, sorted by level DESC then xp DESC."""
     try:
         students = (
             db.query(StudentProfile)
@@ -282,6 +289,7 @@ def get_leaderboard(classroom_id: int, db: Session = Depends(get_db)):
 
 @app.post("/api/quizzes/create", response_model=QuizCreateResponse)
 def create_quiz(payload: QuizCreateRequest, db: Session = Depends(get_db)):
+    """Create a quiz and its questions (used by seed_demo.py and quiz creators)."""
     validate_quiz_payload(payload)
     try:
         classroom = db.query(Classroom).filter(Classroom.id == payload.classroom_id).first()

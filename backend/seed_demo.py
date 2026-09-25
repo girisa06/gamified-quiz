@@ -6,9 +6,13 @@ Usage:
 """
 import json
 import os
+import sys
 from pathlib import Path
 
 import requests
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 BASE_URL = os.getenv("SEED_API_BASE_URL", "http://localhost:8000")
 QUIZ_DIR = Path(__file__).parent / "quizzes"
@@ -23,7 +27,7 @@ def get_or_create_demo_classroom() -> int:
     return data["classroom_id"]
 
 
-def seed_quiz(classroom_id: int, file_name: str) -> int:
+def seed_quiz(classroom_id: int, file_name: str) -> None:
     path = QUIZ_DIR / file_name
     with open(path, "r", encoding="utf-8") as f:
         quiz_data = json.load(f)
@@ -37,13 +41,14 @@ def seed_quiz(classroom_id: int, file_name: str) -> int:
 
     response = requests.post(f"{BASE_URL}/api/quizzes/create", json=payload)
     response.raise_for_status()
-    return response.json()["quiz_id"]
+    quiz_id = response.json()["quiz_id"]
+    print(f"✅ Seeded {quiz_data['title']} (ID: {quiz_id})")
 
 
 def main():
     classroom_id = get_or_create_demo_classroom()
-    quiz_ids = [seed_quiz(classroom_id, file_name) for file_name in QUIZ_FILES]
-    print(f"Seeded 4 quizzes: {quiz_ids}")
+    for file_name in QUIZ_FILES:
+        seed_quiz(classroom_id, file_name)
 
 
 if __name__ == "__main__":

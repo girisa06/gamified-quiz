@@ -1,7 +1,35 @@
 {
-  "title": "Science Basics",
-  "subject": "Science",
+  "title": "General Knowledge Mix",
+  "subject": "General Knowledge",
   "questions": [
+    {
+      "q": "What is the capital of France?",
+      "options": ["Berlin", "Madrid", "Paris", "Rome"],
+      "answer": 2,
+      "difficulty": "easy",
+      "explanation": "Paris has been the capital of France since the 10th century."
+    },
+    {
+      "q": "Who was the first President of the United States?",
+      "options": ["Thomas Jefferson", "George Washington", "John Adams", "Abraham Lincoln"],
+      "answer": 1,
+      "difficulty": "easy",
+      "explanation": "George Washington served as the first U.S. President from 1789 to 1797."
+    },
+    {
+      "q": "What is 8 x 7?",
+      "options": ["54", "56", "64", "48"],
+      "answer": 1,
+      "difficulty": "easy",
+      "explanation": "8 multiplied by 7 equals 56."
+    },
+    {
+      "q": "Who wrote the 'Harry Potter' book series?",
+      "options": ["J.K. Rowling", "Roald Dahl", "C.S. Lewis", "Rick Riordan"],
+      "answer": 0,
+      "difficulty": "easy",
+      "explanation": "J.K. Rowling wrote the Harry Potter series, published between 1997 and 2007."
+    },
     {
       "q": "What planet is closest to the sun?",
       "options": ["Venus", "Mercury", "Earth", "Mars"],
@@ -10,102 +38,74 @@
       "explanation": "Mercury is the closest planet to the sun."
     },
     {
-      "q": "What gas do plants absorb from the air?",
-      "options": ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"],
+      "q": "Which river is traditionally considered the longest in the world?",
+      "options": ["Amazon", "Yangtze", "Nile", "Mississippi"],
       "answer": 2,
-      "difficulty": "easy",
-      "explanation": "Plants absorb carbon dioxide for photosynthesis."
+      "difficulty": "medium",
+      "explanation": "The Nile, at about 6,650 km, is traditionally cited as the world's longest river."
     },
     {
-      "q": "How many bones are in the human body?",
-      "options": ["206", "150", "300", "180"],
-      "answer": 0,
-      "difficulty": "easy",
-      "explanation": "An adult human skeleton has 206 bones."
+      "q": "In which year did World War II end?",
+      "options": ["1943", "1944", "1945", "1946"],
+      "answer": 2,
+      "difficulty": "medium",
+      "explanation": "World War II ended in 1945 with the surrender of Japan and Germany."
     },
     {
-      "q": "What is the boiling point of water at sea level?",
-      "options": ["90°C", "100°C", "110°C", "120°C"],
+      "q": "What is the square root of 144?",
+      "options": ["11", "12", "13", "14"],
       "answer": 1,
-      "difficulty": "easy",
-      "explanation": "Water boils at 100°C (212°F) at sea level."
+      "difficulty": "medium",
+      "explanation": "12 x 12 = 144, so the square root of 144 is 12."
     },
     {
-      "q": "Which organ pumps blood through the body?",
-      "options": ["Lungs", "Liver", "Heart", "Kidney"],
-      "answer": 2,
-      "difficulty": "easy",
-      "explanation": "The heart pumps blood through the circulatory system."
+      "q": "Who wrote 'Pride and Prejudice'?",
+      "options": ["Emily Bronte", "Jane Austen", "Virginia Woolf", "Mary Shelley"],
+      "answer": 1,
+      "difficulty": "medium",
+      "explanation": "Jane Austen published 'Pride and Prejudice' in 1813."
     },
     {
       "q": "What is the chemical symbol for gold?",
       "options": ["Go", "Gd", "Au", "Ag"],
       "answer": 2,
       "difficulty": "medium",
-      "explanation": "Au comes from the Latin word 'aurum'."
+      "explanation": "Au comes from the Latin word for gold, 'aurum'."
     },
     {
-      "q": "What force keeps planets in orbit around the sun?",
-      "options": ["Magnetism", "Gravity", "Friction", "Inertia"],
-      "answer": 1,
-      "difficulty": "medium",
-      "explanation": "Gravity pulls planets toward the sun, keeping them in orbit."
-    },
-    {
-      "q": "What part of the cell contains genetic material?",
-      "options": ["Mitochondria", "Nucleus", "Ribosome", "Cytoplasm"],
-      "answer": 1,
-      "difficulty": "medium",
-      "explanation": "The nucleus houses the cell's DNA."
-    },
-    {
-      "q": "Which layer of Earth is mostly liquid metal?",
-      "options": ["Crust", "Mantle", "Outer core", "Inner core"],
-      "answer": 2,
-      "difficulty": "medium",
-      "explanation": "The outer core is liquid iron and nickel."
-    },
-    {
-      "q": "What type of energy is stored in food?",
-      "options": ["Kinetic", "Chemical", "Thermal", "Nuclear"],
-      "answer": 1,
-      "difficulty": "medium",
-      "explanation": "Food stores chemical energy that cells convert to usable energy."
-    },
-    {
-      "q": "What is the powerhouse of the cell?",
-      "options": ["Nucleus", "Ribosome", "Mitochondria", "Golgi body"],
+      "q": "Which country has the most time zones (including overseas territories)?",
+      "options": ["Russia", "United States", "France", "China"],
       "answer": 2,
       "difficulty": "hard",
-      "explanation": "Mitochondria produce most of the cell's ATP energy."
+      "explanation": "France spans 12 time zones due to its overseas territories, more than any other country."
     },
     {
-      "q": "Which law states that force equals mass times acceleration?",
-      "options": ["Newton's First Law", "Newton's Second Law", "Newton's Third Law", "Law of Gravitation"],
+      "q": "Who was the Byzantine Emperor during the fall of Constantinople in 1453?",
+      "options": ["Justinian I", "Constantine XI", "Basil II", "Michael VIII"],
       "answer": 1,
       "difficulty": "hard",
-      "explanation": "F = ma is Newton's Second Law of Motion."
+      "explanation": "Constantine XI Palaiologos died defending Constantinople when it fell to the Ottomans in 1453."
     },
     {
-      "q": "What particle has a negative electric charge?",
-      "options": ["Proton", "Neutron", "Electron", "Positron"],
+      "q": "What is the value of pi rounded to 4 decimal places?",
+      "options": ["3.1415", "3.1416", "3.1417", "3.1414"],
+      "answer": 1,
+      "difficulty": "hard",
+      "explanation": "Pi rounded to four decimal places is 3.1416."
+    },
+    {
+      "q": "Who wrote 'One Hundred Years of Solitude'?",
+      "options": ["Jorge Luis Borges", "Pablo Neruda", "Gabriel García Márquez", "Mario Vargas Llosa"],
       "answer": 2,
       "difficulty": "hard",
-      "explanation": "Electrons carry a negative charge and orbit the nucleus."
+      "explanation": "Gabriel García Márquez published this landmark of magical realism in 1967."
     },
     {
-      "q": "What process do plants use to convert light into energy?",
-      "options": ["Respiration", "Photosynthesis", "Fermentation", "Transpiration"],
-      "answer": 1,
+      "q": "What is the atomic number of Uranium?",
+      "options": ["82", "88", "92", "94"],
+      "answer": 2,
       "difficulty": "hard",
-      "explanation": "Photosynthesis converts light energy into chemical energy."
-    },
-    {
-      "q": "What is the SI unit of electric current?",
-      "options": ["Volt", "Watt", "Ohm", "Ampere"],
-      "answer": 3,
-      "difficulty": "hard",
-      "explanation": "The ampere (A) measures electric current."
+      "explanation": "Uranium has 92 protons, giving it atomic number 92."
     }
   ]
 }
