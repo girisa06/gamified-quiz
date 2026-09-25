@@ -5,7 +5,17 @@ import os
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+def _use_psycopg2(url):
+    """SQLAlchemy 2.1 maps a plain postgresql:// URL to psycopg v3, which needs libpq/psycopg-binary.
+    We ship psycopg2-binary (works on Windows with no system libs), so pin that driver explicitly."""
+    if url:
+        for prefix in ("postgres://", "postgresql://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg2://" + url[len(prefix):]
+    return url
+
+
+DATABASE_URL = _use_psycopg2(os.getenv("DATABASE_URL"))
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True) if DATABASE_URL else None
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) if engine else None
