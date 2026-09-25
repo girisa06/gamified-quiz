@@ -204,7 +204,7 @@
       "method": "POST",
       "path": "/api/quizzes/generate-from-pdf",
       "implemented": true,
-      "description": "multipart/form-data. Extracts PDF text, asks Gemini for 8-10 questions, stores Quiz + Questions (with topic). Needs GEMINI_API_KEY. 400 unreadable/empty PDF, 404 classroom missing, 500 LLM failure or invalid LLM output.",
+      "description": "multipart/form-data. Extracts PDF text, asks Groq for 5 questions, stores Quiz + Questions (with topic). Needs GROQ_API_KEY. 400 unreadable/empty PDF, 404 classroom missing, 500 LLM failure or invalid LLM output.",
       "request": {
         "file": "<PDF file>",
         "classroom_id": 1,

@@ -29,8 +29,8 @@ AVATAR_CHOICES = ["🐉", "🤖", "🧙", "🦁", "🚀", "⚡"]
 WIN_XP = 10
 XP_PER_LEVEL = 50
 MAX_LEVEL = 10
-LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-MAX_PDF_CHARS = 30000
+LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+MAX_PDF_CHARS = 20000  # keeps requests under Groq free-tier per-minute token limits
 
 
 @app.on_event("startup")
@@ -578,37 +578,57 @@ def extract_pdf_text(data: bytes) -> str:
     return text[:MAX_PDF_CHARS]
 
 
-def generate_questions_with_llm(text: str) -> list:
-    """Ask Gemini for quiz questions and return the parsed JSON list."""
-    api_key = os.environ.get("GEMINI_API_KEY")
+def generate_questions_with_llm(pdf_text: str, class_level: str = "", subject: str = "", chapter: str = "") -> list:
+    """Ask Groq for quiz questions and return them as a list of question dicts."""
+    api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY not loaded from .env")
-    # Only length + 3-char prefix are ever reported, never the key body.
-    if api_key.startswith("sk-"):
+        raise RuntimeError("GROQ_API_KEY not loaded from .env")
+    # Only length + 4-char prefix are ever reported, never the key body.
+    if not api_key.startswith("gsk_"):
         raise RuntimeError(
-            f"GEMINI_API_KEY looks like an OpenAI/Anthropic key ({len(api_key)} chars starting with "
-            f"{api_key[:3]!r}). Get a Gemini key from ai.google.dev."
+            f"GROQ_API_KEY has the wrong format: expected 'gsk_...', got {len(api_key)} chars "
+            f"starting with {api_key[:4]!r}. Create a key at console.groq.com."
         )
-    if not api_key.startswith("AIza"):
-        logger.warning("GEMINI_API_KEY does not start with 'AIza' (len=%d); trying it anyway", len(api_key))
-    import google.generativeai as genai
+    from groq import Groq
 
-    prompt = (
-        "Extract 8-10 quiz questions from this text. Return ONLY valid JSON array, "
-        "no markdown. Each question: {\"q\": \"...\", \"options\": [4 strings], "
-        "\"answer\": int (0-3), \"difficulty\": \"easy\"|\"medium\"|\"hard\", "
-        "\"explanation\": \"...\", \"topic\": \"topic_name\"}\n\nTEXT:\n" + text
+    # JSON mode must return an object (not a bare array), so questions are wrapped and unwrapped below.
+    prompt = f"""Extract educational quiz questions from this text.
+
+Class level: {class_level}
+Subject: {subject}
+Chapter: {chapter}
+
+REQUIREMENTS:
+- Return ONLY a valid JSON object (no markdown, no preamble)
+- Format: {{"questions": [{{"q": "Question text?", "options": ["opt1", "opt2", "opt3", "opt4"], "answer": 0, "difficulty": "easy", "explanation": "Why this is correct", "topic": "topic_name"}}]}}
+- Extract exactly 5 questions
+- "options": exactly 4 plain strings, with no "A)" prefixes
+- "answer": integer 0-3, the index of the correct option
+- "difficulty": one of "easy", "medium", "hard"
+- "topic": one word or short phrase (e.g. photosynthesis, force, inertia)
+
+TEXT:
+{pdf_text}"""
+
+    client = Groq(api_key=api_key)
+    response = client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        temperature=0.3,
+        max_tokens=2000,
     )
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(
-        LLM_MODEL, generation_config={"response_mime_type": "application/json"}
-    )
-    raw = model.generate_content(prompt).text.strip()
-    if raw.startswith("```"):  # strip markdown fences if the model added them
+    raw = (response.choices[0].message.content or "").strip()
+    if raw.startswith("```"):  # strip markdown fences if the model added them anyway
         raw = raw.strip("`").strip()
         if raw.lower().startswith("json"):
             raw = raw[4:].strip()
-    return json.loads(raw)
+    data = json.loads(raw)
+    questions = data.get("questions") if isinstance(data, dict) else data
+    if not isinstance(questions, list):
+        raise ValueError("Groq response did not contain a questions list")
+    logger.info("Groq generated %d questions", len(questions))
+    return questions
 
 
 @app.post("/api/quizzes/generate-from-pdf", response_model=PdfQuizResponse)
@@ -620,13 +640,13 @@ def generate_quiz_from_pdf(
     chapter: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    """Generate a quiz from an uploaded PDF chapter using Gemini."""
+    """Generate a quiz from an uploaded PDF chapter using Groq."""
     get_or_404(db, Classroom, classroom_id, "Classroom")
     text = extract_pdf_text(file.file.read())
     title = chapter or Path(file.filename or "Quiz").stem
 
     try:
-        raw_questions = generate_questions_with_llm(text)
+        raw_questions = generate_questions_with_llm(text, class_level, subject, chapter)
         if not isinstance(raw_questions, list):
             raise ValueError("LLM response was not a JSON array")
         for q in raw_questions:
