@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 import os
@@ -20,3 +20,26 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# Columns added after the first deploy. create_all() only creates missing TABLES,
+# so columns added to tables that already exist (e.g. on Neon) must be added here.
+NEW_COLUMNS = [
+    ("student_profile", "rating", "INTEGER NOT NULL DEFAULT 1200"),
+    ("question", "topic", "VARCHAR(100)"),
+    ("quiz", "class_level", "VARCHAR(20)"),
+    ("quiz", "chapter", "VARCHAR(200)"),
+]
+
+
+def ensure_columns(bind) -> None:
+    """Idempotently add any NEW_COLUMNS missing from existing tables."""
+    inspector = inspect(bind)
+    with bind.begin() as conn:
+        for table, column, ddl in NEW_COLUMNS:
+            if table not in inspector.get_table_names():
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table)}
+            if column not in existing:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+                print(f"[startup] Added column {table}.{column}")

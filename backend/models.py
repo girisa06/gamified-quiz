@@ -1,11 +1,15 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import (
     Column,
     Integer,
+    Float,
     String,
     Text,
     JSON,
     ForeignKey,
     DateTime,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import relationship
@@ -35,6 +39,7 @@ class StudentProfile(Base):
     xp = Column(Integer, default=0, nullable=False)
     current_streak = Column(Integer, default=0, nullable=False)
     wins = Column(Integer, default=0, nullable=False)
+    rating = Column(Integer, default=1200, nullable=False)  # Elo rating
 
     classroom = relationship("Classroom", back_populates="students")
 
@@ -46,6 +51,8 @@ class Quiz(Base):
     classroom_id = Column(Integer, ForeignKey("classroom.id"), nullable=False)
     title = Column(String(200), nullable=False)
     subject = Column(String(100), nullable=True)
+    class_level = Column(String(20), nullable=True)  # e.g. "10", "12" (NCERT)
+    chapter = Column(String(200), nullable=True)  # e.g. "Ch 6: Photosynthesis"
     created_by_student_id = Column(Integer, ForeignKey("student_profile.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -63,6 +70,7 @@ class Question(Base):
     answer_index = Column(Integer, nullable=False)
     difficulty = Column(String(20), nullable=False)
     explanation = Column(Text, nullable=True)
+    topic = Column(String(100), nullable=True)  # topic for BKT mastery tracking
 
     quiz = relationship("Quiz", back_populates="questions")
 
@@ -89,3 +97,16 @@ class BotDifficulty(Base):
     easy_q_count = Column(Integer, default=0, nullable=False)
     medium_q_count = Column(Integer, default=0, nullable=False)
     hard_q_count = Column(Integer, default=0, nullable=False)
+
+
+class Mastery(Base):
+    __tablename__ = "mastery"
+    __table_args__ = (UniqueConstraint("student_id", "topic"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("student_profile.id"), nullable=False)
+    topic = Column(String(100), nullable=False)
+    p_know = Column(Float, default=0.3, nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )
