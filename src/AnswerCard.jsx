@@ -4,8 +4,8 @@ export default function AnswerCard({ question, onAnswer, userAvatar = "🐉" }) 
   const [selectedIdx, setSelectedIdx] = useState(null);
   const [feedback, setFeedback] = useState(null); // 'correct' | 'wrong' | null
 
-  // Negative shifts left toward player, positive shifts right toward bot
-  const ropeShift = feedback === 'correct' ? -42 : feedback === 'wrong' ? 42 : 0;
+  // Shift distance in pixels: Correct pulls LEFT (-55px), Wrong pulls RIGHT (+55px)
+  const ropeShift = feedback === 'correct' ? -55 : feedback === 'wrong' ? 55 : 0;
 
   const handleOptionClick = (idx) => {
     if (feedback) return; // Prevent double taps during animation
@@ -27,10 +27,17 @@ export default function AnswerCard({ question, onAnswer, userAvatar = "🐉" }) 
       <style>{`
         @keyframes strainPulse {
           0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15) rotate(-4deg); }
+        }
+        .pull-strain-left {
+          animation: strainPulse 0.3s ease-in-out infinite;
+        }
+        @keyframes strainPulseRight {
+          0%, 100% { transform: scale(1); }
           50% { transform: scale(1.15) rotate(4deg); }
         }
-        .pull-strain {
-          animation: strainPulse 0.3s ease-in-out infinite;
+        .pull-strain-right {
+          animation: strainPulseRight 0.3s ease-in-out infinite;
         }
       `}</style>
 
@@ -70,7 +77,11 @@ export default function AnswerCard({ question, onAnswer, userAvatar = "🐉" }) 
 
             {/* --- PLAYER FIGHTER (Left) --- */}
             <div className={`relative z-10 flex flex-col items-center transition-all duration-700 ${
-              feedback === 'correct' ? '-translate-x-3 pull-strain' : feedback === 'wrong' ? 'translate-x-5 opacity-60' : ''
+              feedback === 'correct' 
+                ? '-translate-x-5 pull-strain-left scale-110' 
+                : feedback === 'wrong' 
+                ? 'translate-x-4 opacity-50 scale-95' 
+                : ''
             }`}>
               <div className="text-3xl drop-shadow-md select-none transform -scale-x-100">
                 {userAvatar}
@@ -85,9 +96,9 @@ export default function AnswerCard({ question, onAnswer, userAvatar = "🐉" }) 
                 <div className="w-full h-full opacity-30 bg-[repeating-linear-gradient(45deg,#000,#000_3px,transparent_3px,transparent_6px)]" />
               </div>
 
-              {/* Knot Indicator: Shifts Left on Correct, Right on Wrong */}
+              {/* Knot Indicator: Cleanly shifts without class conflict */}
               <div
-                className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 transition-transform duration-700 ease-out z-20 flex flex-col items-center"
+                className="absolute top-1/2 left-1/2 transition-transform duration-700 ease-out z-20 flex flex-col items-center pointer-events-none"
                 style={{ transform: `translate(calc(-50% + ${ropeShift}px), -50%)` }}
               >
                 <div className={`w-3.5 h-3.5 rotate-45 rounded-xs transition-colors duration-300 shadow-md ${
@@ -103,7 +114,11 @@ export default function AnswerCard({ question, onAnswer, userAvatar = "🐉" }) 
 
             {/* --- BOT OPPONENT (Right) --- */}
             <div className={`relative z-10 flex flex-col items-center transition-all duration-700 ${
-              feedback === 'wrong' ? 'translate-x-3 pull-strain' : feedback === 'correct' ? '-translate-x-5 opacity-60' : ''
+              feedback === 'wrong' 
+                ? 'translate-x-5 pull-strain-right scale-110' 
+                : feedback === 'correct' 
+                ? '-translate-x-4 opacity-50 scale-95' 
+                : ''
             }`}>
               <div className="text-3xl drop-shadow-md select-none">
                 🤖
@@ -127,7 +142,7 @@ export default function AnswerCard({ question, onAnswer, userAvatar = "🐉" }) 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {question.options.map((opt, idx) => {
-              let btnStyle = "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-zinc-700";
+              let btnStyle = "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-zinc-700 cursor-pointer";
 
               if (selectedIdx === idx) {
                 btnStyle = feedback === 'correct'

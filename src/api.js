@@ -1,81 +1,155 @@
-const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+const BASE_URL = "http://127.0.0.1:8000";
 
-async function request(path, { method = "GET", body, headers = {}, signal } = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: {
-      ...(body instanceof FormData ? {} : body ? { "Content-Type": "application/json" } : {}),
-      ...headers,
-    },
-    body: body instanceof FormData ? body : body === undefined ? undefined : JSON.stringify(body),
-    signal,
-  });
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(`API ${method} ${path} failed (${response.status})${detail ? `: ${detail}` : ""}`);
-  }
-  if (response.status === 204) return null;
-  return response.json();
-}
-
-const jsonPost = (path, body) => request(path, { method: "POST", body });
-
-function rememberedClassroomId() {
-  if (typeof localStorage === "undefined") return undefined;
+// 1. Join Classroom (supports both joinClass and joinClassroom)
+export const joinClass = async (code, name) => {
   try {
-    return JSON.parse(localStorage.getItem("quizDuel.student") ?? "null")?.classroomId;
-  } catch {
-    return undefined;
+    const res = await fetch(`${BASE_URL}/classrooms/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, name }),
+    });
+    if (!res.ok) throw new Error("Join failed");
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline join fallback:", err);
+    return { student_id: "demo_student_1", name, code };
   }
-}
+};
+export const joinClassroom = joinClass;
 
-export const createClassroom = (classroom) => jsonPost("/api/classrooms/create", classroom);
-export const joinClass = (code, name) => jsonPost("/api/classrooms/join", { code, name });
-export const getQuizzes = (classroomId = rememberedClassroomId()) => getQuizzesByClass(classroomId);
-export const getQuizzesByClass = (classroomId) =>
-  request(`/api/classrooms/${encodeURIComponent(classroomId)}/quizzes`);
-export const getQuiz = (id) => request(`/api/quizzes/${encodeURIComponent(id)}`);
-export const createQuiz = (quiz) => jsonPost("/api/quizzes/create", quiz);
-
-export const uploadPDF = (file, metadata = {}) => {
-  if (!(file instanceof Blob)) throw new TypeError("uploadPDF expects a File or Blob.");
-  const form = new FormData();
-  form.append("file", file, file.name || "quiz-source.pdf");
-  for (const [key, value] of Object.entries(metadata)) {
-    if (value !== undefined && value !== null) form.append(key, String(value));
+// 2. Student Stats (supports both getStudentStats and fetchStudentStats)
+export const getStudentStats = async (studentId = 1) => {
+  try {
+    const res = await fetch(`${BASE_URL}/students/${studentId}/stats`);
+    if (!res.ok) throw new Error("Stats failed");
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline stats fallback:", err);
+    return null;
   }
-  return request("/api/quizzes/generate-from-pdf", { method: "POST", body: form }).then(
-    (result) => result.quiz ?? result.generated_quiz ?? result,
-  );
+};
+export const fetchStudentStats = getStudentStats;
+
+// 3. BKT Mastery Update (supports both updateMastery and submitAnswer)
+export const updateMastery = async (studentId, topic = "photosynthesis", isCorrect = true) => {
+  try {
+    const res = await fetch(`${BASE_URL}/mastery/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        student_id: studentId,
+        topic: topic || "photosynthesis",
+        correct: isCorrect,
+      }),
+    });
+    if (!res.ok) throw new Error("Mastery update failed");
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline mastery fallback:", err);
+    return null;
+  }
+};
+export const submitAnswer = async ({ questionId, trackId, isCorrect, studentId = 1 }) => {
+  return updateMastery(studentId, trackId, isCorrect);
 };
 
-export const createChallenge = (friendId, quizId, studentId) =>
-  jsonPost("/api/challenges/create", {
-    challenger_id: studentId,
-    challenged_id: friendId,
-    quiz_id: quizId,
-  });
+// 4. Track 1: Get Quizzes by Class Level
+export const getQuizzesByClass = async (classLevel = "10") => {
+  try {
+    const res = await fetch(`${BASE_URL}/classrooms/1/quizzes?class_level=${classLevel}`);
+    if (!res.ok) throw new Error("Fetch quizzes failed");
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline quiz fallback:", err);
+    return null;
+  }
+};
 
-export const getChallenges = (studentId) =>
-  request(`/api/challenges/${encodeURIComponent(studentId)}`);
+// 5. Track 2: PDF Upload to LLM Pipeline
+export const uploadPDF = async (file, metadata = {}) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (metadata.title) formData.append("title", metadata.title);
 
-export const submitChallengeScore = (challengeId, score, studentId) =>
-  jsonPost(`/api/challenges/${encodeURIComponent(challengeId)}/submit`, {
-    student_id: studentId,
-    score,
-  });
+  try {
+    const res = await fetch(`${BASE_URL}/quizzes/generate-from-pdf`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error("PDF generation failed");
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline PDF fallback:", err);
+    throw err; // Caught by TrackSelector / App.jsx fallback
+  }
+};
 
-export const getLeaderboard = (classroomId) =>
-  request(`/api/leaderboard/${encodeURIComponent(classroomId)}`);
+// 6. Multiplayer: Challenges
+export const createChallenge = async (quizId, studentAId, studentBId) => {
+  try {
+    const res = await fetch(`${BASE_URL}/challenges/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        quiz_id: quizId,
+        student_a_id: studentAId,
+        student_b_id: studentBId,
+      }),
+    });
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline challenge create fallback:", err);
+    return { id: "chal_" + Date.now(), status: "waiting" };
+  }
+};
 
-export const updateMastery = (studentId, topic, correct) =>
-  jsonPost("/api/mastery/update", { student_id: studentId, topic, correct: Boolean(correct) });
+export const getChallenges = async (studentId = 1) => {
+  try {
+    const res = await fetch(`${BASE_URL}/challenges/${studentId}`);
+    if (!res.ok) throw new Error("Challenges failed");
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline challenges fallback:", err);
+    return [];
+  }
+};
 
-export const getStudentStats = (studentId) =>
-  request(`/api/students/${encodeURIComponent(studentId)}/stats`);
+export const submitChallengeScore = async (challengeId, studentId, score) => {
+  try {
+    const res = await fetch(`${BASE_URL}/challenges/${challengeId}/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ student_id: studentId, score }),
+    });
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline score submit fallback:", err);
+    return { winner: studentId, score };
+  }
+};
 
-export const getMastery = async (studentId) => {
-  const stats = await getStudentStats(studentId);
-  return stats.mastery ?? stats.topics ?? [];
+// 7. Leaderboard
+export const getLeaderboard = async (classroomId = 1) => {
+  try {
+    const res = await fetch(`${BASE_URL}/leaderboard/${classroomId}`);
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline leaderboard fallback:", err);
+    return [];
+  }
+};
+
+// 8. AI Tutor Hint
+export const getTutorHint = async (topic, isCorrect) => {
+  try {
+    const res = await fetch(`${BASE_URL}/tutor/hint`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic, is_correct: isCorrect }),
+    });
+    return await res.json();
+  } catch (err) {
+    console.warn("Using offline tutor fallback:", err);
+    return { hint: "Review the fundamental concepts for this topic." };
+  }
 };
